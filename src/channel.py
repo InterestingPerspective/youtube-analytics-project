@@ -9,34 +9,17 @@ class Channel:
     def __init__(self, channel_id: str) -> None:
         """Экземпляр инициализируется id канала. Дальше все данные будут подтягиваться по API."""
         self.__channel_id = channel_id
+        self.channel = self.get_service().channels().list(id=self.__channel_id, part='snippet,statistics').execute()
+        self.title = self.channel["items"][0]["snippet"]["title"]
+        self.description = self.channel["items"][0]["snippet"]["description"]
+        self.url = f"https://www.youtube.com/channel/{self.__channel_id}"
+        self.sub_count = self.channel["items"][0]["statistics"]["subscriberCount"]
+        self.video_count = self.channel["items"][0]["statistics"]["videoCount"]
+        self.view_count = self.channel["items"][0]["statistics"]["viewCount"]
 
     @property
     def channel_id(self):
         return self.__channel_id
-
-    @property
-    def title(self):
-        return self.channel["items"][0]["snippet"]["title"]
-
-    @property
-    def description(self):
-        return self.channel["items"][0]["snippet"]["description"]
-
-    @property
-    def url(self):
-        return f"https://www.youtube.com/channel/{self.__channel_id}"
-
-    @property
-    def sub_count(self):
-        return self.channel["items"][0]["statistics"]["subscriberCount"]
-
-    @property
-    def video_count(self):
-        return self.channel["items"][0]["statistics"]["videoCount"]
-
-    @property
-    def view_count(self):
-        return self.channel["items"][0]["statistics"]["viewCount"]
 
     @classmethod
     def get_service(cls):
@@ -44,11 +27,6 @@ class Channel:
         api_key: str = os.getenv('YT_API_KEY')
         youtube = build('youtube', 'v3', developerKey=api_key)
         return youtube
-
-    @property
-    def channel(self):
-        """Возвращает данные о канале по ID"""
-        return self.get_service().channels().list(id=self.__channel_id, part='snippet,statistics').execute()
 
     def to_json(self, filename):
         """Сохраняет в файл значения атрибутов экземпляра Channel"""
