@@ -1,20 +1,25 @@
-from src.channel import Channel
 import isodate
 import datetime
+import os
+from googleapiclient.discovery import build
 
 
-class PlayList(Channel):
+class PlayList:
     def __init__(self, playlist_id: str):
         self.__playlist_id = playlist_id
-        self.playlists = self.get_service().playlists().list(channelId="UC-OVMPlMA3-YCIeg4z5z23A",
-                                                             part='contentDetails,snippet',
-                                                             maxResults=50,
-                                                             ).execute()
-        for playlist in self.playlists['items']:
-            if playlist['id'] == self.__playlist_id:
-                self.title = playlist['snippet']['title']
+        self.playlist = self.get_service().playlists().list(id=self.__playlist_id,
+                                                            part='contentDetails,snippet',
+                                                            maxResults=50,
+                                                            ).execute()
+        self.title = self.playlist['items'][0]['snippet']['title']
         self.url = f"https://www.youtube.com/playlist?list={self.__playlist_id}"
-        super().__init__("UC-OVMPlMA3-YCIeg4z5z23A")
+
+    @classmethod
+    def get_service(cls):
+        """Возвращает объект для работы с Youtube API"""
+        api_key: str = os.getenv('YT_API_KEY')
+        youtube = build('youtube', 'v3', developerKey=api_key)
+        return youtube
 
     @property
     def total_duration(self):
